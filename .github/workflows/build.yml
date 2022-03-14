@@ -48,4 +48,4 @@ jobs:
       # if not develop branch deploy build to S3 bucket    
       - name: deploy-build
         if: env.BUCKET_NAME != ''
-        run: echo aws s3 sync ./build s3://$BUCKET_NAME/           
+        run: aws s3 sync ./build s3://$BUCKET_NAME/           
