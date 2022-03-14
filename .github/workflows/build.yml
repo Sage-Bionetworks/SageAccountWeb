@@ -13,11 +13,11 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       # if in staging branch set then bucket name to staging bucket
-      - name: setup-ouputbucket-staging
+      - name: setup-outputbucket-staging
         if: github.ref == 'refs/heads/staging'
         run: echo 'BUCKET_NAME=staging.accounts.sagebionetworks.org' >> $GITHUB_ENV
       # if in production branch then set bucket name to production bucket
-      - name: setup-ouputbucket-prod
+      - name: setup-outputbucket-prod
         if: github.ref == 'refs/heads/production'
         run: echo 'BUCKET_NAME=prod.accounts.sagebionetworks.org' >> $GITHUB_ENV
       # if in development branch then bucket name is empty
