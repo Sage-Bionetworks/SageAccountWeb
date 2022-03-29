@@ -1,21 +1,23 @@
 import React from 'react'
 import './App.css'
 import AppInitializer from './AppInitializer'
-import Versions from './Versions'
 import { SynapseContextConsumer, SynapseContextType } from 'synapse-react-client/dist/utils/SynapseContext'
 import {
   BrowserRouter as Router,
   Route,
-  Switch
+  Switch,
+  Redirect
 } from 'react-router-dom'
 import CookiesNotification from 'components/CookiesNotification'
-import { signOut } from 'synapse-react-client/dist/utils/SynapseClient'
 import LoginPage from './LoginPage'
 import { RegisterAccount1 } from 'components/RegisterAccount1'
 import { SynapseComponents } from 'synapse-react-client'
 import { RegisterAccount2 } from 'components/RegisterAccount2'
-import TermsAndConditions from 'synapse-react-client/dist/containers/TermsAndConditions'
-import { ORCiDButton } from 'components/ORCiDButton'
+import { TermsOfUsePage } from 'components/TermsOfUsePage'
+import TopNavBar from 'components/TopNavBar'
+import { ProfileValidation } from 'components/ProfileValidation'
+import { signOut } from 'synapse-react-client/dist/utils/SynapseClient'
+import AccountSettings from 'components/AccountSettings'
 
 const App: React.FC = () => {
   return (
@@ -23,19 +25,17 @@ const App: React.FC = () => {
       <>
         <Router>
             <AppInitializer>
+              <TopNavBar />
               <CookiesNotification />
               <Switch>
                <Route exact path="/"
                   render={props => {
-                    return <>
-                      <p>There are a few main entrypoints into this web app</p>
-                      <p>
-                        <a href='/register1'>Account Registration</a>,&nbsp;
-                        <a href='/authenticated/validate'>Profile Validation</a>,&nbsp;and&nbsp;
-                        <a href='/authenticated/myaccount'>My Account</a>
-                      </p>
-                      </>
+                    return <Redirect to='/authenticated/myaccount' />
                   }} />
+                <Route exact path='/logout' render={props => {
+                  signOut(()=>{window.location.assign('/authenticated/myaccount')})
+                  return <></>
+                }} />
                 <Route exact path='/register1' component={RegisterAccount1} />
                 <Route exact path='/register2' component={RegisterAccount2} />
                 {/* check for an access token for any route in the "/authenticated/" path */}
@@ -48,38 +48,15 @@ const App: React.FC = () => {
                           return <LoginPage returnToUrl={path} />
                         }
                         if (path === '/authenticated/validate') {
-                          return (
-                            <>
-                              <p>Profile validation page (wizard) goes here</p>
-                              {ctx?.accessToken && 
-                                <div>
-                                  <p>You are logged in!</p>
-                                  <button onClick={() => {signOut(()=>{window.location.reload()})}}>Sign out</button>
-                                </div>}
-                            </>
-                          )
+                          return <ProfileValidation />
                         } else if (path === '/authenticated/signTermsOfUse') {
-                          return (
-                            <>
-                              <TermsAndConditions onFormChange={(completed:boolean) => { console.log("is the form completed?", completed) }} />
-                            </>
-                          )
-                       } else if (path === '/authenticated/myaccount') {
-                        return (
-                          <>
-                            <p>My account management goes here.  Emails, change password, ...</p>
-                            <ORCiDButton />
-                            {ctx?.accessToken && 
-                              <div>
-                                <p>You are logged in!</p>
-                                <button onClick={() => {signOut(()=>{window.location.reload()})}}>Sign out</button>
-                              </div>}
-                          </>
-                        )
-                      } else {
-                        return (<>
-                          <p>Unrecognized match path {routeProps.match.path}</p>
-                        </>)
+                          return <TermsOfUsePage />
+                        } else if (path === '/authenticated/myaccount') {
+                          return <AccountSettings/>
+                        } else {
+                          return (<>
+                            <p>Unrecognized match path {path}</p>
+                          </>)
                        }
                       }}
                     </SynapseContextConsumer>
@@ -91,7 +68,6 @@ const App: React.FC = () => {
             </AppInitializer>
           </Router>
         </>
-      <Versions />
       <SynapseComponents.SynapseToastContainer />
     </div>
   );
