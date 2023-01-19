@@ -1,16 +1,16 @@
-import React, {
-  useCallback,
-  useEffect,
-  useState,
-} from 'react'
+import { DeprecatedThemeOptions } from '@mui/material'
+import { deepmerge } from '@mui/utils'
+import { getSourceAppTheme } from 'components/SourceApp'
+import React, { useCallback, useEffect, useState } from 'react'
+
+import { AppContextProvider } from 'AppContext'
+import { Redirect, useLocation } from 'react-router-dom'
 import { SynapseClient } from 'synapse-react-client'
 import { SynapseContextProvider } from 'synapse-react-client/dist/utils/SynapseContext'
 import { UserProfile } from 'synapse-react-client/dist/utils/synapseTypes'
-import useAnalytics from './useAnalytics'
 import { getSearchParam } from 'URLUtils'
-import { ThemeOptions } from '@mui/material'
-import { getSourceAppTheme } from 'components/SourceApp'
-import { Redirect, useLocation } from 'react-router-dom'
+import theme from './style/theme'
+import useAnalytics from './useAnalytics'
 
 export type AppInitializerState = {
   token?: string
@@ -26,8 +26,7 @@ export type AppInitializerState = {
  * @param setShowLoginDialog
  * @returns
  */
-function useSession(
-) {
+function useSession() {
   const [token, setToken] = useState<string | undefined>(undefined)
   const [touSigned, setTouSigned] = useState(true)
   const [hasCalledGetSession, setHasCalledGetSession] = useState(false)
@@ -67,7 +66,7 @@ function useSession(
       setUserProfile(userProfile)
     } catch (e) {
       console.error('Error on getSession: ', e)
-      if (e.reason == "Terms of use have not been signed.") {
+      if (e.reason == 'Terms of use have not been signed.') {
         setTouSigned(false)
       } else {
         // intentionally calling sign out because there token could be stale so we want
@@ -81,22 +80,21 @@ function useSession(
     }
   }, [initAnonymousUserState])
 
-
   return {
     token,
     userProfile,
     hasCalledGetSession,
     getSession,
-    touSigned
+    touSigned,
   }
 }
 
 function AppInitializer(props: { children?: React.ReactNode }) {
   const [isFramed, setIsFramed] = useState(false)
   const [appId, setAppId] = useState<string>()
-  const [themeOptions, setThemeOptions] = useState<ThemeOptions>()
-  const { token, getSession, hasCalledGetSession, touSigned } =
-    useSession()
+  const [redirectURL, setRedirectURL] = useState<string>()
+  const [themeOptions, setThemeOptions] = useState<DeprecatedThemeOptions>()
+  const { token, getSession, hasCalledGetSession, touSigned } = useSession()
 
   useEffect(() => {
     // SWC-6294: on mount, detect and attempt a client-side framebuster (mitigation only, easily bypassed by attacker)
@@ -117,11 +115,27 @@ function AppInitializer(props: { children?: React.ReactNode }) {
     } else if (localStorageAppId) {
       setAppId(localStorageAppId)
     }
+
+    const searchParamRedirectURL = getSearchParam('redirectURL')
+    const localStorageRedirectURL = localStorage.getItem('sourceAppRedirectURL')
+    if (searchParamRedirectURL) {
+      const hostName = new URL(searchParamRedirectURL).hostname
+      if (hostName.toLowerCase().endsWith('.synapse.org')) {
+        localStorage.setItem('sourceAppRedirectURL', searchParamRedirectURL)
+        setRedirectURL(searchParamRedirectURL)
+      } else {
+        console.error(
+          `Invalid redirectURL (${searchParamRedirectURL}) - Must be a subdomain of .synapse.org`,
+        )
+      }
+    } else if (localStorageRedirectURL) {
+      setRedirectURL(localStorageRedirectURL)
+    }
   }, [])
 
   useEffect(() => {
     if (appId) {
-      setThemeOptions(getSourceAppTheme())
+      setThemeOptions(deepmerge(theme, getSourceAppTheme()))
     }
   }, [appId])
 
@@ -138,7 +152,6 @@ function AppInitializer(props: { children?: React.ReactNode }) {
     SynapseClient.detectSSOCode()
   }, [])
 
-
   if (!hasCalledGetSession) {
     // Don't render anything until the session has been established
     // Otherwise we may end up reloading components and making duplicate requests
@@ -146,18 +159,27 @@ function AppInitializer(props: { children?: React.ReactNode }) {
   }
   const location = useLocation()
   return (
-    <SynapseContextProvider
-      synapseContext={{
-        accessToken: token,
-        isInExperimentalMode: SynapseClient.isInSynapseExperimentalMode(),
-        utcTime: SynapseClient.getUseUtcTimeFromCookie(),
-        downloadCartPageUrl: '',
-
-      }} theme={themeOptions}
+    <AppContextProvider
+      appContext={{
+        appId,
+        redirectURL,
+      }}
     >
-      {!touSigned && location.pathname != '/authenticated/signTermsOfUse' && <Redirect to='/authenticated/signTermsOfUse' />}
-      {!isFramed && props.children}
-    </SynapseContextProvider>
+      <SynapseContextProvider
+        synapseContext={{
+          accessToken: token,
+          isInExperimentalMode: SynapseClient.isInSynapseExperimentalMode(),
+          utcTime: SynapseClient.getUseUtcTimeFromCookie(),
+          downloadCartPageUrl: '',
+        }}
+        theme={themeOptions}
+      >
+        {!touSigned && location.pathname != '/authenticated/signTermsOfUse' && (
+          <Redirect to="/authenticated/signTermsOfUse" />
+        )}
+        {!isFramed && props.children}
+      </SynapseContextProvider>
+    </AppContextProvider>
   )
 }
 

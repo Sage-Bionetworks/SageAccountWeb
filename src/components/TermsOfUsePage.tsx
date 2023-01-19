@@ -4,39 +4,34 @@ import IconSvg from 'synapse-react-client/dist/containers/IconSvg'
 import TermsAndConditions from 'synapse-react-client/dist/containers/TermsAndConditions'
 import { displayToast } from 'synapse-react-client/dist/containers/ToastMessage'
 import { useSynapseContext } from 'synapse-react-client/dist/utils/SynapseContext'
-import { getCurrentSourceApp, SourceAppLogo } from './SourceApp'
+import { useSourceApp, SourceAppLogo } from './SourceApp'
 import { Button, Link } from '@mui/material'
 
-export type TermsOfUsePageProps = {
-}
+export type TermsOfUsePageProps = {}
 
 export const TermsOfUsePage = (props: TermsOfUsePageProps) => {
   const [isLoading, setIsLoading] = useState(false)
   const [isFormComplete, setIsFormComplete] = useState(false)
   const [isDone, setIsDone] = useState(false)
-  const [sourceAppName, setSourceAppName] = useState<string>()
   const { accessToken } = useSynapseContext()
-  React.useEffect(() => {
-    const source = getCurrentSourceApp()
-    setSourceAppName(source?.friendlyName)
-  },[])
+  const sourceAppName = useSourceApp()?.friendlyName
 
   const tcAgreement =
-  'https://s3.amazonaws.com/static.synapse.org/governance/SageBionetworksSynapseTermsandConditionsofUse.pdf'
+    'https://s3.amazonaws.com/static.synapse.org/governance/SageBionetworksSynapseTermsandConditionsofUse.pdf'
   const onSignTermsOfUse = async (event: React.SyntheticEvent) => {
     event.preventDefault()
     setIsLoading(true)
     try {
-      if(accessToken) {
+      if (accessToken) {
         SynapseClient.signSynapseTermsOfUse(accessToken)
-        .then(() => {
-          setIsDone(true)
-        })
-        .catch((err: any) => {
-          displayToast(err.reason as string, 'danger')
-        })
+          .then(() => {
+            setIsDone(true)
+          })
+          .catch((err: any) => {
+            displayToast(err.reason as string, 'danger')
+          })
       }
-    } catch (err:any) {
+    } catch (err: any) {
       displayToast(err.reason as string, 'danger')
     } finally {
       setIsLoading(false)
@@ -44,14 +39,13 @@ export const TermsOfUsePage = (props: TermsOfUsePageProps) => {
   }
 
   const buttonSx = {
-    width : '100%',
-    padding: '10px'
+    width: '100%',
+    padding: '10px',
   }
 
   if (isDone) {
     // AppInitializer still thinks the ToU are not signed.
-    // TODO: This should go to the new Account Created page (or to the page where we gather more profile data for the specific app first, like your Institution for the ARK portal)
-    window.location.assign('/authenticated/myaccount?showWelcomeScreen=true')
+    window.location.assign('/authenticated/accountcreated')
   }
   return (
     <>
@@ -62,21 +56,23 @@ export const TermsOfUsePage = (props: TermsOfUsePageProps) => {
               <SourceAppLogo />
             </div>
             <div className={'terms-of-use-panel'}>
-              <TermsAndConditions 
-                onFormChange={(completed:boolean) => { setIsFormComplete(completed) }} 
+              <TermsAndConditions
+                onFormChange={(completed: boolean) => {
+                  setIsFormComplete(completed)
+                }}
                 // Once SRC version is updated uncomment below
                 // hideLinkToFullTC
               />
               <Button
-                sx ={buttonSx}
+                sx={buttonSx}
                 variant="contained"
                 onClick={onSignTermsOfUse}
-                disabled={ isLoading || !isFormComplete }
+                disabled={isLoading || !isFormComplete}
               >
-                Accept and Continue <IconSvg icon='arrowForward' />
+                Accept and Continue <IconSvg icon="arrowForward" />
               </Button>
               <Button
-                sx ={buttonSx}
+                sx={buttonSx}
                 variant="text"
                 href={tcAgreement}
                 target="_blank"
@@ -87,16 +83,29 @@ export const TermsOfUsePage = (props: TermsOfUsePageProps) => {
           </div>
           <div className={'panel-right'}>
             <div className={'right-panel-text'}>
-              <h4>
-                What is the Sage Pledge
-              </h4>
-              <p>{sourceAppName} is powered by <Link href={"https://sagebionetworks.org/"} target="_blank">Sage Bionetworks</Link>, and follows the Sage Governance polices.</p>
-              <p>To ensure secure and confidential access to data, we ask all account holders to affirm their agreement with our governance policies before finishing registration.</p>
-              <p>If you have questions, please contact <Link href={"mailto:act@sagebionetworks.org"}>act@sagebionetworks.org</Link></p>
+              <h4>What is the Sage Pledge</h4>
+              <p>
+                {sourceAppName} is powered by{' '}
+                <Link href={'https://sagebionetworks.org/'} target="_blank">
+                  Sage Bionetworks
+                </Link>
+                , and follows the Sage Governance polices.
+              </p>
+              <p>
+                To ensure secure and confidential access to data, we ask all
+                account holders to affirm their agreement with our governance
+                policies before finishing registration.
+              </p>
+              <p>
+                If you have questions, please contact{' '}
+                <Link href={'mailto:act@sagebionetworks.org'}>
+                  act@sagebionetworks.org
+                </Link>
+              </p>
             </div>
           </div>
         </div>
-      </div>    
+      </div>
     </>
   )
 }
