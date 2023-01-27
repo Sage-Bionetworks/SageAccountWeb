@@ -10,13 +10,13 @@ import { AccountCreatedPage } from 'components/AccountCreatedPage'
 import { AccountSettings } from 'components/AccountSettings'
 import { CertificationQuiz } from 'components/CertificationQuiz'
 import CookiesNotification from 'components/CookiesNotification'
+import { CurrentAffiliationPage } from 'components/CurrentAffiliationPage'
 import { ProfilePage } from 'components/ProfilePage'
 import { ProfileValidation } from 'components/ProfileValidation/ProfileValidation'
 import { RegisterAccount1 } from 'components/RegisterAccount1'
 import { RegisterAccount2 } from 'components/RegisterAccount2'
 import { ResetPassword } from 'components/ResetPassword'
 import { TermsOfUsePage } from 'components/TermsOfUsePage'
-import TopNavBar from 'components/TopNavBar'
 import React from 'react'
 import { BrowserRouter as Router, Route, Switch } from 'react-router-dom'
 import { SynapseComponents } from 'synapse-react-client'
@@ -32,7 +32,7 @@ import generalTheme from './style/theme'
 
 declare module '@mui/styles/defaultTheme' {
   // eslint-disable-next-line @typescript-eslint/no-empty-interface (remove this line if you don't have the rule enabled)
-  interface DefaultTheme extends Theme { }
+  interface DefaultTheme extends Theme {}
 }
 
 // theme is a merge of a general theme and particular color pallettesfor the source app
@@ -45,7 +45,6 @@ const App: React.FC = () => {
         <ThemeProvider theme={theme}>
           <Router>
             <AppInitializer>
-              <TopNavBar />
               <CookiesNotification />
               <Switch>
                 <Route
@@ -114,6 +113,10 @@ const App: React.FC = () => {
                             return <TermsOfUsePage />
                           } else if (path === '/authenticated/myaccount') {
                             return <AccountSettings />
+                          } else if (
+                            path === '/authenticated/currentaffiliation'
+                          ) {
+                            return <CurrentAffiliationPage />
                           } else if (path === '/authenticated/accountcreated') {
                             return <AccountCreatedPage />
                           } else if (path === '/authenticated/myprofile') {

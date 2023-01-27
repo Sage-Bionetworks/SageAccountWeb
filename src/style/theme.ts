@@ -39,6 +39,12 @@ const themeObject = {
             '0px 4px 4px rgba(0, 0, 0, 0.03), 0px 2px 2px rgba(0, 0, 0, 0.03), 0px 1px 1px rgba(0, 0, 0, 0.03)',
           borderRadius: '3px',
         },
+        text: {
+          '&:hover': {
+            backgroundColor: 'transparent',
+            textDecoration: 'underline',
+          },
+        },
       },
     },
     MuiFormLabel: {
@@ -52,8 +58,49 @@ const themeObject = {
         },
       },
     },
+    MuiDialog: {
+      styleOverrides: {
+        paper: {},
+      },
+    },
+    MuiDialogTitle: {
+      styleOverrides: {
+        root: {
+          padding: '24px 24px 0px 24px',
+        },
+      },
+    },
+    MuiDialogContent: {
+      styleOverrides: {
+        root: {
+          color: '#4A5056',
+        },
+      },
+    },
+    MuiDialogActions: {
+      styleOverrides: {
+        root: {
+          padding: '24px',
+          '& .MuiButton-root': {
+            height: '36px',
+            padding: '0 16px',
+            borderRadius: '0px',
+            fontSize: '15px',
+            '&:first-child': {
+              marginRight: '14px',
+            },
+            '&.MuiButton-outlinedPrimary': {
+              borderWidth: '1px',
+              fontWeight: 700,
+              '&:hover': {
+                '&.MuiButton-outlinedPrimary:hover': { borderWidth: '1px' },
+              },
+            },
+          },
+        },
+      },
+    },
   },
-
   typography: {
     allVariants: {
       fontFamily: latoFont,
@@ -104,7 +151,6 @@ const themeObject = {
     dataFieldKey: {},
   },
 }
-
 const theme: Theme = createTheme(deepmerge(getSourceAppTheme(), themeObject))
 
 export default theme
