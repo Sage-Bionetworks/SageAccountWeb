@@ -1,10 +1,14 @@
 import React, { useEffect, useRef, useState } from 'react'
-import { Button, Link, Container, Box, MenuItem } from '@mui/material'
+import { Button, Link, Container, Box, MenuItem, Grid } from '@mui/material'
 import {
   UserBundle,
   UserProfile,
 } from 'synapse-react-client/dist/utils/synapseTypes'
-import { SynapseClient, SynapseConstants } from 'synapse-react-client'
+import {
+  SynapseClient,
+  SynapseConstants,
+  Typography,
+} from 'synapse-react-client'
 import { useSynapseContext } from 'synapse-react-client/dist/utils/SynapseContext'
 import { displayToast } from 'synapse-react-client/dist/containers/ToastMessage'
 import { Form, FormControl, FormGroup, FormLabel } from 'react-bootstrap'
@@ -15,6 +19,8 @@ import { ORCiDButton } from './ProfileValidation/ORCiDButton'
 import AccountSettingsTopBar from './AccountSettingsTopBar'
 import { useLocation } from 'react-router-dom'
 import { ConfigureEmail } from './ConfigureEmail'
+import { UnbindORCiDDialog } from './ProfileValidation/UnbindORCiD'
+import SourceAppConfigs from './SourceAppConfigs'
 
 export const AccountSettings = () => {
   const { accessToken } = useSynapseContext()
@@ -33,6 +39,8 @@ export const AccountSettings = () => {
   const [verified, setVerified] = useState<boolean>()
   const [isCertified, setIsCertified] = useState<boolean>()
   const [termsOfUse, setTermsOfUse] = useState<boolean>()
+  const [showUnbindORCiDDialog, setShowUnbindORCiDDialog] =
+    useState<boolean>(false)
   const history = useHistory()
 
   const profileInformationRef = useRef<HTMLDivElement>(null)
@@ -180,14 +188,6 @@ export const AccountSettings = () => {
                     />
                   </FormGroup>
                   <FormGroup>
-                    <FormLabel>Current affiliation</FormLabel>
-                    <FormControl
-                      placeholder="e.g. Example University"
-                      onChange={e => setCompany(e.target.value)}
-                      value={company}
-                    />
-                  </FormGroup>
-                  <FormGroup>
                     <FormLabel>Industry</FormLabel>
                     <FormControl
                       onChange={e => setIndustry(e.target.value)}
@@ -211,7 +211,39 @@ export const AccountSettings = () => {
                   </FormGroup>
                   <FormGroup>
                     <FormLabel>Institutional affiliation</FormLabel>
-                    <FormControl />
+                    <FormControl
+                      placeholder="e.g. Example University"
+                      onChange={e => setCompany(e.target.value)}
+                      value={company}
+                    />
+                    <Grid
+                      container
+                      spacing={1}
+                      mx={{ paddingTop: '5px', paddingBottom: '20px' }}
+                    >
+                      <Typography
+                        variant="smallText1"
+                        sx={{ paddingLeft: '10px', paddingTop: '8px' }}
+                      >
+                        Used by
+                      </Typography>
+                      {SourceAppConfigs.map(config => {
+                        if (config.requestAffiliation) {
+                          return (
+                            <Grid item xs={2} className="sourceAppItem">
+                              <a
+                                style={{ display: 'block' }}
+                                href={config.appURL}
+                              >
+                                {config.logo}
+                              </a>
+                            </Grid>
+                          )
+                        } else {
+                          return <></>
+                        }
+                      })}
+                    </Grid>
                   </FormGroup>
                   <Button
                     onClick={updateUserProfile}
@@ -331,7 +363,26 @@ export const AccountSettings = () => {
                       </span>
                     )}
                   </div>
-                  <ORCiDButton sx={credentialButtonSX} />
+                  {orcid ? (
+                    <Button
+                      variant="outlined"
+                      sx={credentialButtonSX}
+                      onClick={() => setShowUnbindORCiDDialog(true)}
+                    >
+                      Unlink your ORCID profile
+                    </Button>
+                  ) : (
+                    <ORCiDButton
+                      sx={credentialButtonSX}
+                      redirectAfter={`${SynapseClient.getRootURL()}authenticated/myaccount`}
+                    />
+                  )}
+                  <UnbindORCiDDialog
+                    show={showUnbindORCiDDialog}
+                    setShow={setShowUnbindORCiDDialog}
+                    orcid={orcid}
+                    redirectAfter={`${SynapseClient.getRootURL()}authenticated/myaccount`}
+                  />
                   <Link
                     href="https://help.synapse.org/docs/Synapse-User-Account-Types.2007072795.html#SynapseUserAccountTypes-ValidatedUsers"
                     target="_blank"
