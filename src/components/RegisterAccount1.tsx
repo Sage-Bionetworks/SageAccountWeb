@@ -1,8 +1,9 @@
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import { FormControl, FormGroup, FormLabel } from 'react-bootstrap'
 import { SynapseClient } from 'synapse-react-client'
-import { PROVIDERS } from 'synapse-react-client/dist/containers/Login'
+import { PROVIDERS } from 'synapse-react-client/dist/containers/auth/Login'
 import { displayToast } from 'synapse-react-client/dist/containers/ToastMessage'
+import { Typography } from 'synapse-react-client'
 import {
   isAliasAvailable,
   registerAccountStep1,
@@ -14,6 +15,9 @@ import { EmailConfirmationPage } from './EmailConfirmationPage'
 import { Button, IconButton, Link as MuiLink } from '@mui/material'
 import IconSvg from 'synapse-react-client/dist/containers/IconSvg'
 import GoogleLogo from '../assets/g-logo.png'
+import { useAppContext } from 'AppContext'
+import { isMembershipInvtnSignedToken } from 'synapse-react-client/dist/utils/synapseTypes/SignedToken/MembershipInvtnSignedToken'
+import theme from 'style/theme'
 
 export type RegisterAccount1Props = {}
 
@@ -25,11 +29,29 @@ export enum Pages {
 }
 
 export const RegisterAccount1 = (props: RegisterAccount1Props) => {
+  const appContext = useAppContext()
   const [isLoading, setIsLoading] = useState(false)
   const [email, setEmail] = useState('')
   const [username, setUsername] = useState('')
   const [page, setPage] = useState(Pages.CHOOSE_REGISTRATION)
   const sourceAppName = useSourceApp()?.friendlyName
+  const [membershipInvitationEmail, setMembershipInvitationEmail] =
+    useState<string>()
+
+  // If we have a MembershipInvtnSignedToken, initialize the email address with the membership invitation invitee email.
+  useEffect(() => {
+    if (
+      appContext.signedToken &&
+      isMembershipInvtnSignedToken(appContext.signedToken)
+    ) {
+      SynapseClient.getMembershipInvitation(appContext.signedToken).then(
+        membershipInvitation => {
+          setEmail(membershipInvitation.inviteeEmail)
+          setMembershipInvitationEmail(membershipInvitation.inviteeEmail)
+        },
+      )
+    }
+  }, [appContext.signedToken])
 
   const buttonSx = {
     width: '100%',
@@ -172,7 +194,9 @@ export const RegisterAccount1 = (props: RegisterAccount1Props) => {
                   >
                     <FormLabel>Email address</FormLabel>
                     <FormControl
-                      onChange={e => setEmail(e.target.value)}
+                      onChange={e =>
+                        setEmail(e.target.value ?? membershipInvitationEmail)
+                      }
                       value={email}
                       onKeyPress={(e: any) => {
                         if (e.key === 'Enter') {
@@ -180,6 +204,17 @@ export const RegisterAccount1 = (props: RegisterAccount1Props) => {
                         }
                       }}
                     />
+                    {!!membershipInvitationEmail &&
+                      membershipInvitationEmail !== email && (
+                        <Typography
+                          variant="smallText1"
+                          sx={{ color: theme.palette.error.main }}
+                        >
+                          Changing your email address will affect any items that
+                          have been shared with you. You can add additional
+                          email addresses after account creation.
+                        </Typography>
+                      )}
                   </FormGroup>
                   <Button
                     sx={buttonSx}
