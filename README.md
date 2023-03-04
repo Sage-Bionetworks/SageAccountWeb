@@ -4,9 +4,24 @@ _Production_ branch is automatically deployed to https://accounts.sagebionetwork
 
 _Staging_ branch is automatically deployed to https://staging.accounts.sagebionetworks.org
 
+## How do I add my app to OneSage?
+
+1. [Create an OAuth 2.0 Client for use with Synapse](https://help.synapse.org/docs/Using-Synapse-as-an-OAuth-Server.2048327904.html).  You can skip this step if you have an internal app running on a known .synapse.org subdomain.
+2. Create a new Jira ticket in the [PORTALS project](https://sagebionetworks.jira.com/jira/software/c/projects/PORTALS/issues), or [open a Service Desk ticket](https://sagebionetworks.jira.com/servicedesk/customer/portal/9) if outside Sage, requesting that your app be listed in OneSage. Please include the following information:
+     - **Default URL**: Where can we find the production version of this app?
+     - **Name**: The friendly name of your app
+     - **Logo**: Your app logo.  The logo should contain the name of your app, and preferably be a svg.
+     - **Primary and Secondary colors**: These are used to generate a palette.
+     - **Description**:  A plain text short description of your app (<200 characters).
+     - **OAuth Client ID**:  If using an OAuth Client to connect, please provide your 'client ID'.  This value will be used as your 'appId'.
+3. Web Engineering will send you an 'appId'.  To show the user a branded experience, the 'appId' should be given as a query parameter when you link to the OneSage website for sign-in or account registration (see below).  You should also provide the 'redirectURL' query parameter.
+
+_Note to Web Engineer:_ We are currently using [this Synapse Table](https://www.synapse.org/#!Synapse:syn45291362/tables/) as the data source.
+
+
 ## Entry points
 
-### Account Registration
+### Redirect to App
 
 _/_
 
@@ -16,7 +31,7 @@ The root prompts you to sign in or register for an account. Once this is complet
 
 _/register1_
 
-Takes you to a place where you can create a Sage account. It links to Google-based account creation, and standard Login (if you already have an account).
+Takes you to a place where you can create a Sage account. It links to Google-based account creation, or email-based account creation.
 
 ### Profile Validation
 
